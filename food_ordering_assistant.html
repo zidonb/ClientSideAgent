@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Food Ordering Assistant</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        .section {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        /* Dropdown Styling */
+        .dropdown {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            position: relative;
+        }
+
+        .dropdown-btn {
+            width: 48%;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        /* Fixed dropdown width and position */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            width: 48%;
+            /* Match the button width */
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            padding: 10px;
+            box-sizing: border-box;
+            top: 100%;
+            /* Position below the button */
+            left: 0;
+            /* Align with the dropdown button */
+        }
+
+        .dropdown-content label {
+            display: block;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .dropdown-content input {
+            margin-right: 8px;
+            width: auto;
+            /* Fix checkbox width */
+        }
+
+        #selected-sauces {
+            width: 48%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: white;
+            cursor: default;
+            font-size: 14px;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>🍔 AI Food Ordering Assistant</h2>
+
+        <!-- Main Dish -->
+        <div class="section">
+            <label for="food-category">Choose a main dish:</label>
+            <select id="food-category">
+                <option value="burger">Burger</option>
+                <option value="hotdog">Hot Dog</option>
+                <option value="salad">Salad</option>
+                <option value="pizza">Pizza</option>
+                <option value="pasta">Pasta</option>
+            </select>
+        </div>
+
+        <!-- Sauce Selection (Fixed Alignment) -->
+        <div class="section">
+            <label for="sauce">Choose up to 2 sauces:</label>
+            <div class="dropdown">
+                <button id="sauce-btn" class="dropdown-btn">Select Sauces</button>
+                <input type="text" id="selected-sauces" placeholder="No sauces selected" readonly>
+                <div class="dropdown-content" id="sauce-options">
+                    <label><input type="checkbox" value="ketchup"> Ketchup</label>
+                    <label><input type="checkbox" value="mayo"> Mayo</label>
+                    <label><input type="checkbox" value="bbq"> BBQ</label>
+                    <label><input type="checkbox" value="mustard"> Mustard</label>
+                    <label><input type="checkbox" value="garlic"> Garlic Sauce</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Dish Selection -->
+        <div class="section">
+            <label for="side">Choose a side dish:</label>
+            <select id="side">
+                <option value="fries">Fries</option>
+                <option value="rice">Rice</option>
+                <option value="sweet-potato">Sweet Potato</option>
+                <option value="onion-rings">Onion Rings</option>
+                <option value="none">No Side Dish</option>
+            </select>
+        </div>
+
+        <!-- Drink Selection -->
+        <div class="section">
+            <label for="drink">Choose a drink:</label>
+            <select id="drink">
+                <option value="cola">Cola</option>
+                <option value="lemonade">Lemonade</option>
+                <option value="water">Water</option>
+                <option value="iced-tea">Iced Tea</option>
+                <option value="none">No Drink</option>
+            </select>
+        </div>
+
+        <!-- Delivery Comment -->
+        <div class="section">
+            <label for="delivery-comment">Delivery Comment:</label>
+            <input type="text" id="delivery-comment" placeholder="e.g., No onions, left door...">
+        </div>
+
+        <!-- Submit Button -->
+        <button id="submit-order">Place Order</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sauceBtn = document.getElementById("sauce-btn");
+            const sauceDropdown = document.getElementById("sauce-options");
+            const sauceInputs = sauceDropdown.querySelectorAll("input");
+            const selectedSaucesInput = document.getElementById("selected-sauces");
+
+            // Toggle dropdown visibility
+            sauceBtn.addEventListener("click", function (event) {
+                event.stopPropagation();
+                sauceDropdown.style.display = sauceDropdown.style.display === "block" ? "none" : "block";
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener("click", function (event) {
+                if (!sauceBtn.contains(event.target) && !sauceDropdown.contains(event.target)) {
+                    sauceDropdown.style.display = "none";
+                }
+            });
+
+            // Handle sauce selection (limit to 2)
+            sauceInputs.forEach(input => {
+                input.addEventListener("change", function () {
+                    let selected = Array.from(sauceInputs)
+                        .filter(checkbox => checkbox.checked)
+                        .map(checkbox => checkbox.value);
+
+                    if (selected.length > 2) {
+                        this.checked = false; // Prevent selecting more than 2
+                    } else {
+                        selectedSaucesInput.value = selected.length > 0 ? selected.join(", ") : "No sauces selected";
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="indexedDB.js"></script>
+
+</body>
+
+</html>
