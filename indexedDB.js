@@ -77,8 +77,6 @@ async function saveUserSelection(userId, selections) {
  * Save user preferences (checkbox confirmations) when they change.
  */
 async function saveUserPreferences(userId, confirmations) {
-    console.log("[IndexedDB] Saving user preferences...");
-
     try {
         const db = await openDatabase();
         const transaction = db.transaction("userPreferences", "readwrite");
@@ -87,7 +85,6 @@ async function saveUserPreferences(userId, confirmations) {
         const request = store.put({ userId, confirmations });
 
         request.onsuccess = () => {
-            console.log("[IndexedDB] Preferences saved successfully:", confirmations);
         };
 
         request.onerror = (event) => {
@@ -103,8 +100,6 @@ async function saveUserPreferences(userId, confirmations) {
  * Save the finalized order when "Place Order" is clicked.
  */
 async function saveFinalOrder(userId, selections, confirmations) {
-    console.log("[IndexedDB] Saving final order...");
-
     try {
         const db = await openDatabase();
         const transaction = db.transaction("userOrders", "readwrite");
@@ -201,15 +196,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 sauce1: document.getElementById("sauce1")?.value || "none",
                 sauce2: document.getElementById("sauce2")?.value || "none"
             },
-            deliveryComment: document.getElementById("delivery-comment")?.value || ""
-        };
-    }
-
-    function getConfirmations() {
-        return {
-            sideDish: document.getElementById("confirm-side")?.checked || false,
-            drink: document.getElementById("confirm-drink")?.checked || false,
-            sauces: document.getElementById("confirm-sauces")?.checked || false
+            deliveryComment: document.getElementById("delivery-comment")?.value || "",
+            // Include checkbox states in selections
+            confirmations: {
+                sideDish: document.getElementById("confirm-side")?.checked || false,
+                drink: document.getElementById("confirm-drink")?.checked || false,
+                sauces: document.getElementById("confirm-sauces")?.checked || false
+            }
         };
     }
 
@@ -219,10 +212,18 @@ document.addEventListener("DOMContentLoaded", function () {
         saveUserSelection(userId, selections);
     }
 
-    function autoSaveConfirmations() {
+    // Modified to trigger both preferences and selections save
+    function handleCheckboxChange() {
         let userId = "user_1";
-        let confirmations = getConfirmations();
+        let confirmations = {
+            sideDish: document.getElementById("confirm-side")?.checked || false,
+            drink: document.getElementById("confirm-drink")?.checked || false,
+            sauces: document.getElementById("confirm-sauces")?.checked || false
+        };
+        // Save to preferences store
         saveUserPreferences(userId, confirmations);
+        // Also save to orders store
+        autoSaveSelection();
     }
 
     // Attach auto-save event listeners for dropdowns
@@ -233,17 +234,16 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("sauce2").addEventListener("change", autoSaveSelection);
     document.getElementById("delivery-comment").addEventListener("input", autoSaveSelection);
 
-    // Attach auto-save event listeners for checkboxes
-    document.getElementById("confirm-side").addEventListener("change", autoSaveConfirmations);
-    document.getElementById("confirm-drink").addEventListener("change", autoSaveConfirmations);
-    document.getElementById("confirm-sauces").addEventListener("change", autoSaveConfirmations);
+    // Attach auto-save event listeners for checkboxes - now using handleCheckboxChange
+    document.getElementById("confirm-side").addEventListener("change", handleCheckboxChange);
+    document.getElementById("confirm-drink").addEventListener("change", handleCheckboxChange);
+    document.getElementById("confirm-sauces").addEventListener("change", handleCheckboxChange);
 
     // Submit order button
     document.getElementById("submit-order").addEventListener("click", function () {
         let userId = "user_1";
         let selections = getSelections();
-        let confirmations = getConfirmations();
-        saveFinalOrder(userId, selections, confirmations);
+        saveFinalOrder(userId, selections, selections.confirmations);
     });
 
     // View history button
