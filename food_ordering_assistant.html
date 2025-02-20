@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Food Ordering Assistant</title>
+    <script src="indexedDB.js" defer></script>
+
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -59,6 +60,7 @@
             font-size: 16px;
             cursor: pointer;
             transition: background 0.3s;
+            margin-top: 10px;
         }
 
         button:hover {
@@ -89,7 +91,6 @@
             display: none;
             position: absolute;
             width: 48%;
-            /* Match the button width */
             max-height: 150px;
             overflow-y: auto;
             background-color: white;
@@ -99,9 +100,7 @@
             padding: 10px;
             box-sizing: border-box;
             top: 100%;
-            /* Position below the button */
             left: 0;
-            /* Align with the dropdown button */
         }
 
         .dropdown-content label {
@@ -113,7 +112,6 @@
         .dropdown-content input {
             margin-right: 8px;
             width: auto;
-            /* Fix checkbox width */
         }
 
         #selected-sauces {
@@ -137,7 +135,7 @@
     <div class="container">
         <h2>🍔 AI Food Ordering Assistant</h2>
 
-        <!-- Main Dish -->
+        <!-- Main Dish Selection -->
         <div class="section">
             <label for="food-category">Choose a main dish:</label>
             <select id="food-category">
@@ -149,7 +147,7 @@
             </select>
         </div>
 
-        <!-- Sauce Selection (Fixed Alignment) -->
+        <!-- Sauce Selection -->
         <div class="section">
             <label for="sauce">Choose up to 2 sauces:</label>
             <div class="dropdown">
@@ -195,8 +193,12 @@
             <input type="text" id="delivery-comment" placeholder="e.g., No onions, left door...">
         </div>
 
-        <!-- Submit Button -->
+        <!-- Submit Order -->
         <button id="submit-order">Place Order</button>
+
+        <!-- View Past Orders Button -->
+        <button id="view-history">View Past Orders</button>
+
     </div>
 
     <script>
@@ -235,8 +237,6 @@
             });
         });
     </script>
-    <script src="indexedDB.js"></script>
 
 </body>
-
 </html>
