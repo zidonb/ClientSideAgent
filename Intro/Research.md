@@ -497,7 +497,7 @@ Our system **isn’t reinventing machine learning**, but it is **applying existi
 
 ---
 
-## **🔹 Not for Research: Is It Realistic to Implement Advanced Approaches?**  
+## **Is It Realistic to Implement Advanced Approaches?**  
 💡 **Short Answer:** **Not fully** in a client-side MVP, but **possible with hybrid AI**.  
 
 ✔ **Client-side reinforcement learning (what we're doing) is realistic**.  
@@ -505,3 +505,44 @@ Our system **isn’t reinventing machine learning**, but it is **applying existi
 ✔ **Self-learning & evolutionary AI are challenging due to browser constraints** (limited processing power, small datasets).  
 
 💡 **If we go hybrid** (periodic model updates from a server), **self-learning AI becomes more feasible** while still keeping **fast, real-time recommendations** on the client side.  
+
+### **🔹 AI-Powered Client-Side Food Ordering Assistant – Research Summary**  
+
+#### **📌 Project Overview**  
+We are developing a **client-side AI-driven food ordering assistant** that **learns user behavior and optimizes recommendations** in real time. The system operates **entirely in the browser**, using **machine learning, reinforcement learning, and local storage** for personalization.  
+
+#### **🔹 Core AI Approach**  
+✅ **Brain.js (Neural Networks)** – Provides structured recommendations based on past user behavior.  
+✅ **rl-js (Reinforcement Learning)** – Fine-tunes AI recommendations dynamically based on user feedback.  
+✅ **Hybrid Learning Model** – Brain.js offers an **initial prediction model**, while rl-js **adapts to individual user preferences over time**.  
+
+---
+
+### **🔹 Cold Start Problem – Handling New Users**  
+- **Issue:** When a user visits for the first time, AI has no historical data.  
+- **Solution:** Brain.js is pre-trained with **common food pairings** to provide **reasonable first-time recommendations.**  
+- **Example:** If a user selects a burger, AI suggests fries and cola based on predefined knowledge.  
+- **Adaptation:** AI **updates based on user choices** and improves recommendations over multiple interactions.  
+
+---
+
+### **🔹 Why Brain.js Before rl-js?**  
+| **Aspect** | **Brain.js (Neural Networks)** | **rl-js (Reinforcement Learning)** |
+|-----------|--------------------------------|------------------------------------|
+| **How It Learns?** | From structured past user data | From real-time user feedback |
+| **Starting Point** | Pre-trained with food pairings | Starts with no data, learns by trial & error |
+| **Time to Learn** | Fast (uses historical data) | Slow (needs many interactions) |
+| **Can Predict on First Visit?** | ✅ Yes | ❌ No |
+| **Adaptive?** | ❌ Requires periodic retraining | ✅ Continuously adapts |
+
+✅ **Best Strategy:** Use **Brain.js for structured knowledge**, then let **rl-js fine-tune decisions over time.**  
+📌 **Over time, Brain.js’ role can be reduced, but not eliminated entirely.**  
+
+---
+
+### **🔹 Updating Brain.js Over Time**  
+- **Brain.js does NOT update itself automatically** – It must be retrained periodically.  
+- **Two retraining strategies:**  
+  ✅ **Batch Updates** – Retrain every few orders to include new behavior.  
+  ✅ **Continuous Updates** – AI retrains in real-time (may slow performance).  
+- **rl-js continuously adapts in real-time** without retraining the neural network.  
