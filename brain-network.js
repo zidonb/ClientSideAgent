@@ -7,7 +7,7 @@ const net = new brain.NeuralNetwork({
     activation: 'sigmoid'
 });
 
-import { saveAIModel, loadAIModel, getAllOrders, resetOrderCounter } from './db.js';
+import { saveAIModel, loadAIModel, getAllOrders } from './db.js';
 
 // Neural network for food recommendations
 class FoodRecommender {
@@ -24,13 +24,13 @@ class FoodRecommender {
         try {
             // First, check if initialization has already occurred
             const initStatus = await loadAIModel('initialization-status');
-            
+
             if (initStatus && initStatus.completed) {
                 console.log("System already initialized, checking for saved model");
-                
+
                 // System initialized, try to load saved model
                 const savedModel = await loadAIModel('brainjs-model');
-                
+
                 if (savedModel) {
                     // Load existing model
                     this.net.fromJSON(savedModel);
@@ -46,24 +46,24 @@ class FoodRecommender {
                 // First time initialization
                 console.log("First-time initialization, training with default data");
                 await this.trainWithDefaultData();
-                
+
                 // Mark as initialized
                 await saveAIModel('initialization-status', { completed: true, timestamp: new Date().toISOString() });
             }
-            
+
             return this.isInitialized;
         } catch (error) {
             console.error("Error initializing neural network:", error);
             // Fall back to default training
             await this.trainWithDefaultData();
-            
+
             // Try to mark as initialized even after error
             try {
                 await saveAIModel('initialization-status', { completed: true, timestamp: new Date().toISOString() });
             } catch (e) {
                 console.error("Could not save initialization status:", e);
             }
-            
+
             return this.isInitialized;
         }
     }
@@ -114,6 +114,7 @@ class FoodRecommender {
     }
 
     // Train with historical order data
+    // Updated version without resetOrderCounter:
     async trainWithOrderHistory() {
         try {
             const orders = await getAllOrders();
@@ -141,8 +142,7 @@ class FoodRecommender {
             // Save the updated model
             await saveAIModel('brainjs-model', this.net.toJSON());
 
-            // Reset order counter
-            await resetOrderCounter();
+            // No need to reset counter anymore with the modulo approach
 
             return true;
         } catch (error) {
