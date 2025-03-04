@@ -285,8 +285,11 @@
             }
         }
 
+        /*
+ * Enhanced Debug Panel Styles
+ */
         .debug-panel {
-            background: #2d2d2d;
+            background: #1e1e1e;
             color: #e0e0e0;
             border-radius: var(--border-radius);
             padding: 15px;
@@ -301,43 +304,62 @@
             /* Display when debug-active class is applied */
         }
 
-
         .debug-title {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
         }
 
         .debug-content {
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
             padding: 10px;
-            background: #1e1e1e;
+            background: #121212;
             border-radius: 4px;
             font-size: 0.9rem;
+            line-height: 1.5;
         }
 
         .debug-item {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             padding-bottom: 8px;
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid #333;
+            word-wrap: break-word;
+            white-space: normal;
+            overflow-wrap: break-word;
         }
 
-        .debug-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        .debug-item-timestamp {
+            color: #888;
+            font-size: 0.8rem;
+            margin-right: 8px;
+        }
+
+        .debug-group {
+            margin-left: 15px;
+            padding-left: 10px;
+            border-left: 1px solid #444;
+            color: #bbb;
+        }
+
+        .debug-highlight {
+            color: #64B5F6;
+            font-weight: bold;
+        }
+
+        .debug-success {
+            color: #81C784;
+        }
+
+        .debug-warning {
+            color: #FFD54F;
+        }
+
+        .debug-error {
+            color: #E57373;
         }
     </style>
     <!-- Load Brain.js directly from CDN -->
@@ -482,7 +504,7 @@
             debugClose.addEventListener('click', function () {
                 debugPanel.classList.remove('debug-active');
             });
-           
+
             function selectOption(category, value) {
                 // Find and select the option
                 const options = document.querySelectorAll(`#${category}-options .option-chip`);

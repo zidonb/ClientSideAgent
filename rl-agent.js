@@ -1,4 +1,4 @@
-// rl-agent.js - Reinforcement learning implementation using rl-js
+// rl-agent.js - Enhanced reinforcement learning implementation
 
 import { saveAIModel, loadAIModel } from './db.js';
 
@@ -15,6 +15,14 @@ class ReinforcementAgent {
             pizza: this.createEmptyAdjustments(),
             salad: this.createEmptyAdjustments(),
             pasta: this.createEmptyAdjustments()
+        };
+        
+        // Initialize cumulative rewards for tracking
+        this.cumulativeRewards = {
+            burger: { correct: 0, total: 0 },
+            pizza: { correct: 0, total: 0 },
+            salad: { correct: 0, total: 0 },
+            pasta: { correct: 0, total: 0 }
         };
         
         this.isInitialized = false;
@@ -56,7 +64,13 @@ class ReinforcementAgent {
             
             if (savedModel) {
                 // Load existing adjustments
-                this.adjustments = savedModel;
+                this.adjustments = savedModel.adjustments || savedModel;
+                this.cumulativeRewards = savedModel.cumulativeRewards || {
+                    burger: { correct: 0, total: 0 },
+                    pizza: { correct: 0, total: 0 },
+                    salad: { correct: 0, total: 0 },
+                    pasta: { correct: 0, total: 0 }
+                };
                 console.log("Loaded existing RL agent adjustments");
             } else {
                 // No saved model, use defaults
@@ -111,6 +125,9 @@ class ReinforcementAgent {
             sauce: adjusted.sauces[0].item
         };
         
+        // Add successful prediction rate information
+        adjusted.successRate = this.getSuccessRate(mainDish);
+        
         console.log("Adjusted prediction:", adjusted);
         
         return adjusted;
@@ -131,6 +148,20 @@ class ReinforcementAgent {
         categoryItems.sort((a, b) => b.probability - a.probability);
     }
     
+    // Get success rate for a main dish
+    getSuccessRate(mainDish) {
+        const rewards = this.cumulativeRewards[mainDish];
+        if (!rewards || rewards.total === 0) {
+            return { rate: 0, correct: 0, total: 0 };
+        }
+        
+        return {
+            rate: (rewards.correct / rewards.total) * 100,
+            correct: rewards.correct,
+            total: rewards.total
+        };
+    }
+    
     // Learn from user choice
     async learn(mainDish, recommendation, userChoice) {
         if (!this.isInitialized) {
@@ -147,6 +178,12 @@ class ReinforcementAgent {
         // Get adjustments for this main dish
         const dishAdjustments = this.adjustments[mainDish];
         
+        // Track rewards
+        this.cumulativeRewards[mainDish].total += 3; // 3 choices (side, drink, sauce)
+        if (recommendation.side === userChoice.side) this.cumulativeRewards[mainDish].correct += 1;
+        if (recommendation.drink === userChoice.drink) this.cumulativeRewards[mainDish].correct += 1;
+        if (recommendation.sauce === userChoice.sauce) this.cumulativeRewards[mainDish].correct += 1;
+        
         // Learn for each category
         this.learnCategory(dishAdjustments.sides, recommendation.side, userChoice.side);
         this.learnCategory(dishAdjustments.drinks, recommendation.drink, userChoice.drink);
@@ -156,6 +193,7 @@ class ReinforcementAgent {
         await this.saveAdjustments();
         
         console.log("Updated adjustments:", this.adjustments[mainDish]);
+        console.log("Updated success rate:", this.getSuccessRate(mainDish));
     }
     
     // Learn for a specific category
@@ -175,7 +213,12 @@ class ReinforcementAgent {
     // Save adjustments to IndexedDB
     async saveAdjustments() {
         try {
-            await saveAIModel('rl-agent', this.adjustments);
+            const modelData = {
+                adjustments: this.adjustments,
+                cumulativeRewards: this.cumulativeRewards
+            };
+            
+            await saveAIModel('rl-agent', modelData);
             console.log("Saved RL agent adjustments");
             return true;
         } catch (error) {
