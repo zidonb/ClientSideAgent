@@ -457,28 +457,6 @@
             const debugClose = document.getElementById('debug-close');
             const learningIndicator = document.getElementById('learning-indicator');
 
-            // Simulate AI activity
-            setTimeout(() => {
-                learningIndicator.classList.add('active');
-            }, 2000);
-
-            // Food card selection
-            foodCards.forEach(card => {
-                card.addEventListener('click', function () {
-                    // Clear previous selection
-                    foodCards.forEach(c => c.classList.remove('selected'));
-
-                    // Set new selection
-                    this.classList.add('selected');
-
-                    // Show recommendations section
-                    recommendationsSection.classList.add('recommendations-active');
-
-                    // Simulate AI recommendations
-                    simulateAIRecommendations(this.dataset.value);
-                });
-            });
-
             // Option chip selection
             optionChips.forEach(chip => {
                 chip.addEventListener('click', function () {
@@ -504,34 +482,7 @@
             debugClose.addEventListener('click', function () {
                 debugPanel.classList.remove('debug-active');
             });
-
-
-            // Simulate AI recommendations (placeholder)
-            function simulateAIRecommendations(mainDish) {
-                // In a real implementation, this would be where Brain.js and rl-js work together
-
-                // Log to debug panel
-                logDebug(`User selected: ${mainDish}`);
-                logDebug(`Brain.js probabilities: {fries: 0.8, onion-rings: 0.3, salad: 0.4, rice: 0.2}`);
-                logDebug(`rl-js adjustments: {fries: -0.1, onion-rings: +0.2}`);
-                logDebug(`Final recommendations: Side: fries, Drink: cola, Sauce: ketchup`);
-
-                // Select default options based on mainDish (for demo)
-                let defaultSelections = {
-                    burger: { side: 'fries', drink: 'cola', sauce: 'ketchup' },
-                    pizza: { side: 'salad', drink: 'lemonade', sauce: 'none' },
-                    salad: { side: 'rice', drink: 'water', sauce: 'none' },
-                    pasta: { side: 'salad', drink: 'iced-tea', sauce: 'none' }
-                };
-
-                let defaults = defaultSelections[mainDish];
-
-                // Set selected options
-                selectOption('side', defaults.side);
-                selectOption('drink', defaults.drink);
-                selectOption('sauce', defaults.sauce);
-            }
-
+           
             function selectOption(category, value) {
                 // Find and select the option
                 const options = document.querySelectorAll(`#${category}-options .option-chip`);
@@ -544,16 +495,22 @@
                 });
             }
 
-            function logDebug(message) {
+            function logDebug(message, data = null) {
                 const debugContent = document.getElementById('debug-content');
                 const item = document.createElement('div');
                 item.classList.add('debug-item');
-                item.textContent = message;
+
+                if (data) {
+                    message += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                }
+
+                item.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
                 debugContent.appendChild(item);
 
                 // Auto-scroll to bottom
                 debugContent.scrollTop = debugContent.scrollHeight;
             }
+
         });
     </script>
 </body>
