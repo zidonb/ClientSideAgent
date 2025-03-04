@@ -67,7 +67,7 @@ async function initializeConfig() {
                 store.put({
                     name: "systemConfig",
                     trainingFrequency: 10, // Retrain after every 10 orders
-                    ordersSinceLastTraining: 0,
+                    totalOrderCount: 0,    // New field to track total orders
                     lastTrainingTimestamp: null
                 });
                 console.log("Default configuration created");
@@ -95,15 +95,13 @@ async function saveOrder(orderData) {
         // Save the order
         const orderRequest = orderStore.add(orderData);
         
-        orderRequest.onsuccess = async () => {
-            console.log("Order saved successfully");
-            
-            // Update order counter
-            await updateOrderCounter();
-        };
-        
         return new Promise((resolve, reject) => {
-            orderTransaction.oncomplete = () => resolve();
+            orderTransaction.oncomplete = async () => {
+                console.log("Order saved successfully");
+                // Check if retraining is needed after incrementing the counter
+                const shouldRetrain = await incrementOrderCounter();
+                resolve(shouldRetrain);
+            };
             orderTransaction.onerror = (e) => reject(e.target.error);
         });
     } catch (error) {
@@ -112,32 +110,39 @@ async function saveOrder(orderData) {
     }
 }
 
-// Update order counter and check if retraining is needed
-async function updateOrderCounter() {
+// Increment order counter and check if retraining is needed using modulo
+async function incrementOrderCounter() {
     try {
         const transaction = db.transaction("config", "readwrite");
         const store = transaction.objectStore("config");
         
         const request = store.get("systemConfig");
         
-        request.onsuccess = (event) => {
-            const config = request.result;
-            config.ordersSinceLastTraining += 1;
-            
-            store.put(config);
-            
-            // Check if retraining is needed
-            if (config.ordersSinceLastTraining >= config.trainingFrequency) {
-                console.log("Retraining threshold reached!");
-                // Will trigger retraining in a separate function
-                return true;
-            }
-            return false;
-        };
-        
         return new Promise((resolve, reject) => {
-            transaction.oncomplete = () => resolve(request.result);
-            transaction.onerror = (e) => reject(e.target.error);
+            request.onsuccess = (event) => {
+                const config = request.result;
+                // Increment the total order count
+                config.totalOrderCount = (config.totalOrderCount || 0) + 1;
+                
+                // Save updated configuration
+                store.put(config);
+                
+                // Check if retraining is needed using modulo
+                // We use the condition (count % freq === 0) AND (count > 0)
+                const shouldRetrain = config.totalOrderCount > 0 && 
+                                     (config.totalOrderCount % config.trainingFrequency === 0);
+                
+                if (shouldRetrain) {
+                    console.log(`Retraining threshold reached at order #${config.totalOrderCount}!`);
+                    // Update last training timestamp
+                    config.lastTrainingTimestamp = new Date().toISOString();
+                    store.put(config);
+                }
+                
+                resolve(shouldRetrain);
+            };
+            
+            request.onerror = (e) => reject(e.target.error);
         });
     } catch (error) {
         console.error("Error updating order counter:", error);
@@ -214,30 +219,28 @@ async function getAllOrders() {
     }
 }
 
-// Reset order counter after training
-async function resetOrderCounter() {
+// Get the current total order count
+async function getTotalOrderCount() {
     try {
         const db = await openDatabase();
-        const transaction = db.transaction("config", "readwrite");
+        const transaction = db.transaction("config", "readonly");
         const store = transaction.objectStore("config");
         
         const request = store.get("systemConfig");
         
-        request.onsuccess = (event) => {
-            const config = request.result;
-            config.ordersSinceLastTraining = 0;
-            config.lastTrainingTimestamp = new Date().toISOString();
-            
-            store.put(config);
-        };
-        
         return new Promise((resolve, reject) => {
-            transaction.oncomplete = () => resolve();
-            transaction.onerror = (e) => reject(e.target.error);
+            request.onsuccess = () => {
+                if (request.result) {
+                    resolve(request.result.totalOrderCount || 0);
+                } else {
+                    resolve(0); // Config not found
+                }
+            };
+            request.onerror = (e) => reject(e.target.error);
         });
     } catch (error) {
-        console.error("Error resetting order counter:", error);
-        throw error;
+        console.error("Error getting total order count:", error);
+        return 0;
     }
 }
 
@@ -248,6 +251,6 @@ export {
     saveAIModel,
     loadAIModel,
     getAllOrders,
-    resetOrderCounter,
-    updateOrderCounter
+    incrementOrderCounter,
+    getTotalOrderCount
 };

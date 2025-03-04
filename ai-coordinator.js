@@ -2,7 +2,7 @@
 
 import foodRecommender from './brain-network.js';
 import rlAgent from './rl-agent.js';
-import { saveOrder, updateOrderCounter } from './db.js';
+import { saveOrder, incrementOrderCounter } from './db.js';
 
 // AI Coordinator combines neural network and reinforcement learning
 class AICoordinator {
@@ -135,8 +135,9 @@ class AICoordinator {
         this.addLearningOutcome('Drink', this.lastRecommendation.recommendation.drink, order.drink);
         this.addLearningOutcome('Sauce', this.lastRecommendation.recommendation.sauce, order.sauce);
         
-        // Save order to database
-        await saveOrder({
+        // Save order to database and check if retraining is needed
+        // The new saveOrder returns whether we should retrain
+        const orderData = {
             mainDish: this.lastRecommendation.mainDish,
             side: order.side,
             drink: order.drink,
@@ -144,10 +145,9 @@ class AICoordinator {
             timestamp: new Date().toISOString(),
             recommendedItems: this.lastRecommendation.recommendation,
             accuracy: accuracy.overall
-        });
+        };
         
-        // Update order counter and check if retraining is needed
-        const shouldRetrain = await updateOrderCounter();
+        const shouldRetrain = await saveOrder(orderData);
         
         // If retraining threshold reached, retrain neural network
         if (shouldRetrain) {
