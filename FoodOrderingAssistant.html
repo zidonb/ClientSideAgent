@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Food Ordering Assistant</title>
+    <style>
+        :root {
+            --primary-color: #4e54c8;
+            --primary-light: #8f94fb;
+            --secondary-color: #5cb85c;
+            --text-color: #333333;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --section-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            --border-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .section {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--section-shadow);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .section-title i {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .section-title h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        /* Main Dish Section */
+        .food-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .food-card {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            position: relative;
+            height: 220px;
+            border: 2px solid transparent;
+        }
+
+        .food-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .food-card.selected {
+            border-color: var(--primary-color);
+        }
+
+        .food-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .food-img {
+            height: 140px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .burger-img {
+            background-image: url('https://placehold.co/400x320/orange/white?text=Burger');
+        }
+
+        .pizza-img {
+            background-image: url('https://placehold.co/400x320/red/white?text=Pizza');
+        }
+
+        .salad-img {
+            background-image: url('https://placehold.co/400x320/green/white?text=Salad');
+        }
+
+        .pasta-img {
+            background-image: url('https://placehold.co/400x320/yellow/white?text=Pasta');
+        }
+
+        .food-info {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .food-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        /* AI Recommendations Section */
+        .ai-recommendations {
+            display: none;
+            /* Hidden initially, shown after selection */
+        }
+
+        .recommendations-active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .recommendation-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .recommendation-label {
+            width: 120px;
+            font-weight: 600;
+        }
+
+        .recommendation-options {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+        }
+
+        .option-chip {
+            padding: 8px 15px;
+            background: var(--light-bg);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .option-chip:hover {
+            background: #e9ecef;
+        }
+
+        .option-chip.selected {
+            background: var(--primary-light);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Order Button */
+        .order-btn {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: block;
+            margin: 30px auto 10px;
+            width: 200px;
+        }
+
+        .order-btn:hover {
+            background: #4cae4c;
+        }
+
+        /* AI Learning Indicator */
+        .ai-learning {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .ai-learning .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+            margin-right: 8px;
+            position: relative;
+        }
+
+        .ai-learning .active {
+            background: var(--primary-color);
+        }
+
+        .ai-learning .active::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--primary-color);
+            opacity: 0.5;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            70% {
+                transform: scale(2);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        .debug-panel {
+            background: #2d2d2d;
+            color: #e0e0e0;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            display: none;
+            /* Hidden by default */
+        }
+
+        .debug-active {
+            display: block;
+            /* Display when debug-active class is applied */
+        }
+
+
+        .debug-title {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .debug-content {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #1e1e1e;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .debug-item {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #444;
+        }
+
+        .debug-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+    <!-- Load Brain.js directly from CDN -->
+    <script src="https://unpkg.com/brain.js"></script>
+    <script src="https://unpkg.com/rl-js"></script>
+    <script type="module" src="db.js"></script>
+    <script type="module" src="brain-network.js"></script>
+    <script type="module" src="rl-agent.js"></script>
+    <script type="module" src="ai-coordinator.js"></script>
+    <script type="module" src="main.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🍽️ AI-Powered Food Ordering</h1>
+            <div class="subtitle">Smart recommendations powered by Brain.js and Reinforcement Learning</div>
+        </header>
+
+        <div class="section">
+            <div class="section-title">
+                <i>🍔</i>
+                <h2>Select Your Main Dish</h2>
+            </div>
+            <div class="food-cards">
+                <div class="food-card" data-value="burger">
+                    <div class="food-img burger-img"></div>
+                    <div class="food-info">
+                        <div class="food-name">Burger</div>
+                    </div>
+                </div>
+                <div class="food-card" data-value="pizza">
+                    <div class="food-img pizza-img"></div>
+                    <div class="food-info">
+                        <div class="food-name">Pizza</div>
+                    </div>
+                </div>
+                <div class="food-card" data-value="salad">
+                    <div class="food-img salad-img"></div>
+                    <div class="food-info">
+                        <div class="food-name">Salad</div>
+                    </div>
+                </div>
+                <div class="food-card" data-value="pasta">
+                    <div class="food-img pasta-img"></div>
+                    <div class="food-info">
+                        <div class="food-name">Pasta</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section ai-recommendations" id="recommendations">
+            <div class="section-title">
+                <i>🤖</i>
+                <h2>AI Recommendations</h2>
+            </div>
+
+            <div class="recommendation-row">
+                <div class="recommendation-label">Side Dish:</div>
+                <div class="recommendation-options" id="side-options">
+                    <div class="option-chip" data-value="fries">Fries</div>
+                    <div class="option-chip" data-value="onion-rings">Onion Rings</div>
+                    <div class="option-chip" data-value="salad">Side Salad</div>
+                    <div class="option-chip" data-value="rice">Rice</div>
+                </div>
+            </div>
+
+            <div class="recommendation-row">
+                <div class="recommendation-label">Drink:</div>
+                <div class="recommendation-options" id="drink-options">
+                    <div class="option-chip" data-value="cola">Cola</div>
+                    <div class="option-chip" data-value="lemonade">Lemonade</div>
+                    <div class="option-chip" data-value="water">Water</div>
+                    <div class="option-chip" data-value="iced-tea">Iced Tea</div>
+                </div>
+            </div>
+
+            <div class="recommendation-row">
+                <div class="recommendation-label">Sauce:</div>
+                <div class="recommendation-options" id="sauce-options">
+                    <div class="option-chip" data-value="ketchup">Ketchup</div>
+                    <div class="option-chip" data-value="mayo">Mayo</div>
+                    <div class="option-chip" data-value="bbq">BBQ</div>
+                    <div class="option-chip" data-value="mustard">Mustard</div>
+                    <div class="option-chip" data-value="none">None</div>
+                </div>
+            </div>
+
+            <button class="order-btn" id="place-order">Place Order</button>
+
+            <div class="ai-learning">
+                <div class="indicator" id="learning-indicator"></div>
+                <div>AI is adapting to your preferences</div>
+            </div>
+
+            <div class="debug-panel" id="debug-panel">
+                <div class="debug-title">
+                    <span>AI Debug Information</span>
+                    <span id="debug-close" style="cursor: pointer;">×</span>
+                </div>
+                <div class="debug-content" id="debug-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <button class="debug-toggle" id="debug-toggle">🐞</button>
+
+    <script>
+        // Basic UI Interaction (to be replaced with actual AI implementation)
+        document.addEventListener('DOMContentLoaded', function () {
+            const foodCards = document.querySelectorAll('.food-card');
+            const recommendationsSection = document.getElementById('recommendations');
+            const optionChips = document.querySelectorAll('.option-chip');
+            const debugToggle = document.getElementById('debug-toggle');
+            const debugPanel = document.getElementById('debug-panel');
+            const debugClose = document.getElementById('debug-close');
+            const learningIndicator = document.getElementById('learning-indicator');
+
+            // Simulate AI activity
+            setTimeout(() => {
+                learningIndicator.classList.add('active');
+            }, 2000);
+
+            // Food card selection
+            foodCards.forEach(card => {
+                card.addEventListener('click', function () {
+                    // Clear previous selection
+                    foodCards.forEach(c => c.classList.remove('selected'));
+
+                    // Set new selection
+                    this.classList.add('selected');
+
+                    // Show recommendations section
+                    recommendationsSection.classList.add('recommendations-active');
+
+                    // Simulate AI recommendations
+                    simulateAIRecommendations(this.dataset.value);
+                });
+            });
+
+            // Option chip selection
+            optionChips.forEach(chip => {
+                chip.addEventListener('click', function () {
+                    // Get all chips in the same category
+                    const siblings = this.parentElement.querySelectorAll('.option-chip');
+
+                    // Clear previous selection
+                    siblings.forEach(s => s.classList.remove('selected'));
+
+                    // Set new selection
+                    this.classList.add('selected');
+                });
+            });
+
+            // Debug panel toggle
+            debugToggle.addEventListener('click', function () {
+                console.log("Debug button clicked");
+                debugPanel.classList.toggle('debug-active');
+                console.log("Current classes on debug panel:", debugPanel.className);
+            });
+
+            // Debug panel close
+            debugClose.addEventListener('click', function () {
+                debugPanel.classList.remove('debug-active');
+            });
+
+
+            // Simulate AI recommendations (placeholder)
+            function simulateAIRecommendations(mainDish) {
+                // In a real implementation, this would be where Brain.js and rl-js work together
+
+                // Log to debug panel
+                logDebug(`User selected: ${mainDish}`);
+                logDebug(`Brain.js probabilities: {fries: 0.8, onion-rings: 0.3, salad: 0.4, rice: 0.2}`);
+                logDebug(`rl-js adjustments: {fries: -0.1, onion-rings: +0.2}`);
+                logDebug(`Final recommendations: Side: fries, Drink: cola, Sauce: ketchup`);
+
+                // Select default options based on mainDish (for demo)
+                let defaultSelections = {
+                    burger: { side: 'fries', drink: 'cola', sauce: 'ketchup' },
+                    pizza: { side: 'salad', drink: 'lemonade', sauce: 'none' },
+                    salad: { side: 'rice', drink: 'water', sauce: 'none' },
+                    pasta: { side: 'salad', drink: 'iced-tea', sauce: 'none' }
+                };
+
+                let defaults = defaultSelections[mainDish];
+
+                // Set selected options
+                selectOption('side', defaults.side);
+                selectOption('drink', defaults.drink);
+                selectOption('sauce', defaults.sauce);
+            }
+
+            function selectOption(category, value) {
+                // Find and select the option
+                const options = document.querySelectorAll(`#${category}-options .option-chip`);
+                options.forEach(option => {
+                    if (option.dataset.value === value) {
+                        option.classList.add('selected');
+                    } else {
+                        option.classList.remove('selected');
+                    }
+                });
+            }
+
+            function logDebug(message) {
+                const debugContent = document.getElementById('debug-content');
+                const item = document.createElement('div');
+                item.classList.add('debug-item');
+                item.textContent = message;
+                debugContent.appendChild(item);
+
+                // Auto-scroll to bottom
+                debugContent.scrollTop = debugContent.scrollHeight;
+            }
+        });
+    </script>
+</body>
+
+</html>
